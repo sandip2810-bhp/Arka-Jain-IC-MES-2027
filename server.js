@@ -13,7 +13,10 @@ const PORT = process.env.PORT || 3000;
 const PUB = path.join(__dirname, 'public');
 const UPLOADS = path.join(PUB, 'uploads');
 const BACKUPS = path.join(__dirname, 'backups');
-[UPLOADS, BACKUPS].forEach(d => fs.mkdirSync(d, { recursive: true }));
+let WRITABLE = true; // false on hosts with a read-only disk (for example Vercel)
+try { [UPLOADS, BACKUPS].forEach(d => fs.mkdirSync(d, { recursive: true })); }
+catch (e) { WRITABLE = false; console.warn('Disk is read-only: the website will load, but the admin panel cannot save changes here.'); }
+const needDisk = (req, res, next) => WRITABLE ? next() : res.status(503).json({ error: 'This host cannot save files. Use a host with persistent storage (for example Render with a disk).' });
 
 const app = express();
 app.disable('x-powered-by');
@@ -61,7 +64,7 @@ app.post('/api/logout', (req, res) => { res.setHeader('Set-Cookie', 'admin=; Htt
 app.get('/api/me', requireAdmin, (req, res) => res.json({ ok: true }));
 
 // Save the edited page (keeps the last 20 backups)
-app.post('/api/save', requireAdmin, (req, res) => {
+app.post('/api/save', requireAdmin, needDisk, (req, res) => {
   const html = req.body && req.body.html;
   if (typeof html !== 'string' || !html.startsWith('<!DOCTYPE html>') || html.length > 2000000) return res.status(400).json({ error: 'Invalid page' });
   const file = path.join(PUB, 'index.html');
@@ -87,7 +90,7 @@ function realType(file) {
   const fd = fs.openSync(file, 'r'); const b = Buffer.alloc(4); fs.readSync(fd, b, 0, 4, 0); fs.closeSync(fd);
   return (SIGS[ext] || []).some(sig => b.toString('hex').startsWith(sig));
 }
-app.post('/api/upload', requireAdmin, (req, res) => {
+app.post('/api/upload', requireAdmin, needDisk, (req, res) => {
   upload.single('file')(req, res, err => {
     if (err) return res.status(400).json({ error: err.code === 'LIMIT_FILE_SIZE' ? 'File is larger than 10 MB' : 'Upload failed' });
     if (!req.file) return res.status(400).json({ error: 'File type not allowed' });
