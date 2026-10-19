@@ -104,4 +104,9 @@ app.get('/admin', (req, res) => res.redirect('/#admin'));
 
 app.use(express.static(PUB, { setHeaders: res => res.setHeader('X-Content-Type-Options', 'nosniff') }));
 app.use((err, req, res, next) => { console.error(err); res.status(err.status || 500).json({ error: 'Server error' }); });
-app.listen(PORT, () => console.log('Website running at http://localhost:' + PORT));
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log('Local server running on port ' + PORT));
+}
+
+module.exports = app;
