@@ -71,7 +71,7 @@ b4.onclick=async()=>{await fetch('/api/logout',{method:'POST'});location.reload(
 b2.onclick=async()=>{b2.disabled=true;msg.textContent='Saving...';
  try{
   const c=document.documentElement.cloneNode(true);
-  c.querySelectorAll('.ctl,#adminbar,#adminlogin').forEach(e=>e.remove());
+  c.querySelectorAll('.ctl,#adminbar,#adminlogin,.cursor-dot,.cursor-ring,.touch-ripple,.touch-particle,#theme-toggle,.theme-filter-bar,.floating-dock,.hero-canvas,.mobile-menu-btn').forEach(e=>e.remove());
   const al=c.querySelector('#adminlink');if(al)al.removeAttribute('hidden');
   c.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
   c.querySelectorAll('details.adv').forEach(d=>d.removeAttribute('open'));
