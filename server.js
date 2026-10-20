@@ -102,8 +102,6 @@ app.post('/api/upload', requireAdmin, needDisk, (req, res) => {
 // Direct address for the admin login (works even if the footer link is ever removed)
 app.get('/admin', (req, res) => res.redirect('/#admin'));
 
-const path = require('path');
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.static(PUB, { setHeaders: res => res.setHeader('X-Content-Type-Options', 'nosniff') }));
